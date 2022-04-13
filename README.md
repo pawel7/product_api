@@ -1,64 +1,127 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+## Project description
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a simple API made with Laravel 9.
+It allows to create, show, update and delete products.
+No user authentication is required.
 
-## About Laravel
+The products have the following fields: name, price and quantity.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+git clone https://github.com/pawel7/product_api.git
+cd product_api
+composer install
+cp .env.example .env
+```
 
-## Learning Laravel
+Edit your database name, username, password in `.env` file.
+When the database connection is ready do the folowing:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+php artisan migrate
+php artisan serve 
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Do it yourself
 
-## Laravel Sponsors
+You can create such an API yourself from scratch just by issuing the following commands and editing a few files:
+```
+composer create-project laravel/laravel product_api
+cd product_api/
+git init
+git add .
+git commit -m "Initial commit"
+php artisan make:model Product --migration
+php artisan make:controller ProductController --api
+code .
+```
+Edit the following files:
+```
+.env
+app/Models/Product.php
+app/Http/Controllers/ProductController.php
+routes/api.php
+```
+Run `php artisan serve`   
+Run `Postman`.  
+Create a new product:
+```
+POST http://localhost:8000/api/products
+```
+Supply a header `Accept: application/json`.  
+Supply three keys and values in the body: name, price, quantity.   
+Add another product.  
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Open `http://localhost:8000/api/products` in the browser to see your products.
 
-### Premium Partners
+You can press `Ctrl-Z` to suspend the server and `fg` to resume.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+## Routes
 
-## Contributing
+The following API routes are available:  
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- List all products:
+```
+GET /api/products
+```
 
-## Code of Conduct
+- List a single product:
+```
+GET /api/products/{id}
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Search a product by name:
+```
+GET /products/search/{name}
+```
 
-## Security Vulnerabilities
+In the real world application the following routes should be protected - available only for authorized users.  
+But for simplicity of this demo all the routes are public and there is no login or logout route.  
+The other API routes:  
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Create a new product.   
+The body must have nonempty fields: name, price, quantity.  
+```
+POST /api/products
+```
+   
+- Update a product
+```
+PUT /api/products/{id}
+```
 
-## License
+- Delete a product    
+```
+DELETE /api/products/{id}
+```        
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+All the above public routes (except search route) are generated from a single instruction in `api.php`:
+```
+Route::apiResource('products', ProductController::class);
+```
+## Protecting routes
+
+To protect the routes, we can write an `AuthController` with `register`, `login` and `logout` methods, and change the routes in `api.php` to the following:  
+
+```
+   // Public routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/products/search/{name}', [ProductController::class, 'search']);
+
+   // Protected routes
+Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::put('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+```
+
+## Testing
+
+See [Testing.md](Testing.md)
